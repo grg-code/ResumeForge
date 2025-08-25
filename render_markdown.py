@@ -1,7 +1,7 @@
-from models import CanonicalProfile
+from models import ProfessionalProfile
 
 
-def create_resume_markdown(profile: CanonicalProfile, output_path: str) -> str:
+def create_resume_markdown(profile: ProfessionalProfile, output_path: str) -> str:
     """
     Create a clean, ATS-friendly resume in Markdown format.
     

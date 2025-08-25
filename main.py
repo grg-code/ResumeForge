@@ -9,7 +9,7 @@ from langchain.output_parsers import PydanticOutputParser
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
 
-from models import CanonicalProfile
+from models import ProfessionalProfile
 from render_markdown import create_resume_markdown
 from tools import ask_question
 
@@ -44,7 +44,7 @@ def read_docx_file(file_path: str) -> str:
 class ResumeBuilderAgent:
     def __init__(self):
         # Set up the parser for structured output
-        parser = PydanticOutputParser(pydantic_object=CanonicalProfile)
+        parser = PydanticOutputParser(pydantic_object=ProfessionalProfile)
 
         # System prompt for the React Agent
         self._prompt = (
@@ -71,10 +71,10 @@ class ResumeBuilderAgent:
                 ask_question
             ],
             prompt=self._prompt,
-            response_format=CanonicalProfile
+            response_format=ProfessionalProfile
         )
 
-    def run(self, cv_text: str, job_description: Optional[str] = None) -> CanonicalProfile:
+    def run(self, cv_text: str, job_description: Optional[str] = None) -> ProfessionalProfile:
         """
         Run the resume processing agent.
         
@@ -83,22 +83,23 @@ class ResumeBuilderAgent:
             job_description: Optional job description for context and adaptation
             
         Returns:
-            CanonicalProfile: Complete structured profile
+            ProfessionalProfile: Complete structured profile
         """
 
         # Prepare agent input
-        task_prompt = f"""Analyze this resume and create a complete CanonicalProfile:
+        task_prompt = f"""Analyze this resume and build a complete structured professional profile, 
+        adapting it to the job description if provided and filling in missing details where possible:
 
-Resume text:
-{cv_text}"""
+        Resume text:
+        {cv_text}"""
 
         if job_description:
             task_prompt += f"""
 
-Job Description (use for context and adaptation):
-{job_description}"""
+        Job Description (use for context and adaptation):
+        {job_description}"""
 
-        task_prompt += "\n\nCreate a complete CanonicalProfile. Ask clarifying questions if needed."
+        task_prompt += "\n\nAsk clarifying questions if needed."
 
         # Run the agent
         print("🤖 Processing with AI agent...")
@@ -180,7 +181,7 @@ def main():
     result_dict = json.loads(messages[-1].content)
 
     print(result_dict)
-    profile = CanonicalProfile.model_validate(result_dict)
+    profile = ProfessionalProfile.model_validate(result_dict)
 
     # Step 3: Create final resume
     print("📝 Creating final resume...")

@@ -25,7 +25,7 @@ class Education(BaseModel):
     graduation_date: Optional[str] = Field(None, description="Graduation date (MM/YYYY format)")
 
 
-class CanonicalProfile(BaseModel):
+class ProfessionalProfile(BaseModel):
     contact_info: ContactInfo = Field(default_factory=ContactInfo, description="Personal contact information")
     professional_summary: Optional[str] = Field(None, description="Brief professional overview and value proposition")
     experience: List[Experience] = Field(default_factory=list, description="Work experience history")
