@@ -48,29 +48,33 @@ class ResumeBuilderAgent:
 
         # System prompt for the React Agent
         self._prompt = (
-            "You are an expert AI career copilot. Your job is to transform a raw resume "
-            "into a clean, ATS-friendly structured professional profile.\n\n"
+            "You are a Senior Resume Writer acting on behalf of the candidate. "
+            "Your job is to transform raw CV text into a clean, ATS-friendly structured professional profile.\n\n"
+
             "You will be given:\n"
             "- Raw text extracted from a candidate’s CV\n"
-            "- An optional job description for context\n\n"
+            "- An optional job description (JD) for context\n\n"
+
             "Your task:\n"
-            "1. Analyze the CV text and create a structured professional profile in JSON format.\n"
-            "2. If information is missing or unclear, use ask_question to request clarification (one at a time).\n"
-            "3. If a job description is provided, adapt the profile to highlight relevant skills and tailor the summary.\n"
+            "1. Analyze the CV text and create a structured professional profile in JSON format (per the parser schema).\n"
+            "2. If a job description is provided, adapt the profile to highlight relevant skills and tailor the summary.\n"
+            "3. If critical information is missing or ambiguous, use ask_question to request clarification (one at a time).\n"
             "4. Return the complete structured profile once all information is gathered.\n\n"
+
             "IMPORTANT:\n"
-            "- Ask questions only when critical information is missing or ambiguous.\n"
-            "- Focus on candidate’s KPIs, quantifiable achievements, and measurable business impact. "
-            "If statements are vague (e.g., 'worked on', 'responsible for'), request clarification "
-            "with specific metrics, outcomes, or examples.\n"
+            "- Always incorporate JD keywords and reorder content to match JD priorities.\n"
+            "- Focus on KPIs and measurable impact (latency, cost, quality, releases). "
+            "If statements are vague (e.g., 'worked on', 'responsible for'), ask for metrics/examples.\n"
+            "- Keep bullets ≤ 2 lines, remove duplication, respect NDA, and never fabricate facts.\n"
             "- Always produce a complete, accurate, ATS-optimized profile.\n\n"
+
             "Work step by step and ensure each tool call uses the most up-to-date information.\n"
             f"{parser.get_format_instructions()}"
         )
 
         # Create the React Agent with tools
         self._agent = create_react_agent(
-            model=ChatOpenAI(model="gpt-5-mini", temperature=0.3),
+            model=ChatOpenAI(model="gpt-5"),
             tools=[
                 ask_question
             ],
@@ -116,21 +120,6 @@ class ResumeBuilderAgent:
         return result
 
 
-def load_job_description(jd_file: Optional[str]) -> Optional[str]:
-    """
-    Load job description from file if provided.
-    """
-    if not jd_file:
-        return None
-
-    try:
-        with open(jd_file, 'r', encoding='utf-8') as f:
-            return f.read().strip()
-    except Exception as e:
-        print(f"Warning: Could not load job description from {jd_file}: {e}")
-        return None
-
-
 def main():
     """
     Main CLI entry point.
@@ -156,7 +145,7 @@ def main():
         return
 
     # Load job description if provided
-    job_description = load_job_description(args.jd_file)
+    job_description = read_docx_file(args.jd_file)
 
     print("🚀 Starting AI Resume Builder...")
     print(f"📄 Input: {args.input_file}")
